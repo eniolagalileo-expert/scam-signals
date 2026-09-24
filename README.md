@@ -24,6 +24,7 @@ It's the detection engine behind [ScamShield for Alexa+](https://github.com/enio
 - **Safe:** it never opens, fetches or clicks links. Links are analyzed as text.
 - **Tiny:** no dependencies, works offline, instant.
 - **Multilingual:** detection keywords in English, Spanish, Hindi and Indonesian; spoken answers in Spanish (full), Hindi and Indonesian (verdict + action).
+- **Understands links read aloud:** "usps dot com dash track dot top slash pkg" (or "punto com guion ... barra") is rebuilt into `usps.com-track.top/pkg` and checked, for voice assistants and call transcripts.
 
 ## What it detects
 20+ tactics, including:
@@ -38,13 +39,13 @@ It's the detection engine behind [ScamShield for Alexa+](https://github.com/enio
 ## API
 
 ```js
-import { scanMessage, analyzeUrl, analyzePhone, reportLinks } from "scam-signals";
+import { scanMessage, analyzeUrl, analyzePhone, normalizeSpokenLinks, reportLinks } from "scam-signals";
 
 const r = scanMessage("Chase: your account is locked. Verify your identity at http://chase-secure-verify.online", { country: "US" });
 r.verdict;     // "scam" | "suspicious" | "likely_safe"
 r.confidence;  // heuristic 0-100 (not a probability)
 r.speech;      // "This looks like a scam. ..."
-r.language;    // "en" | "es" | "hi" | "id"
+r.language;    // "en" | "es" | "hi" | "id" (detected; pass { speak: "es" } to answer in another language)
 r.red_flags;   // [{ flag, evidence, why? }]
 r.links;       // per-link analysis
 r.phones;      // per-number analysis
@@ -53,6 +54,9 @@ r.report;      // official reporting links for the country (US, GB, IN, CA, AU)
 
 analyzeUrl("http://paypa1-secure.com/login");
 // { risk: "high", domain: "paypa1-secure.com", flags: ['Looks like "paypal.com" but is actually paypa1-secure.com (look-alike domain)', ...] }
+
+normalizeSpokenLinks("pay at usps dot com dash track dot top slash pkg");
+// "pay at usps.com-track.top/pkg"
 
 analyzePhone("+234 803 555 0199", ["usps"]);
 // { risk: "high", country: "Nigeria", flags: ["Claims to be USPS (a US organization) but the number is from Nigeria"] }
