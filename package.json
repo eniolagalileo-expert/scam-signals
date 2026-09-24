@@ -1,0 +1,16 @@
+{
+  "name": "scam-signals",
+  "version": "0.1.0",
+  "description": "Explainable, dependency-free scam detection for text messages, links and phone numbers, with spoken-friendly summaries.",
+  "type": "module",
+  "exports": "./src/index.js",
+  "bin": { "scam-signals": "./bin/scam-signals.js" },
+  "files": ["src", "bin"],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "bench": "node scripts/bench.js"
+  },
+  "keywords": ["scam", "phishing", "smishing", "fraud", "security", "url", "lookalike-domain", "voice", "accessibility"],
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}
