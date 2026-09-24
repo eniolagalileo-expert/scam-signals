@@ -73,7 +73,9 @@ The exit code is `1` for a scam and `0` otherwise, handy in scripts and mail fil
 | Dev sets A, B, C (100 msgs, used while designing the rules) | 100% | 66/66 | 0/34 |
 | **Held-out test v2 (37 msgs, written after all tuning, never tuned on)** | **86%** | **17/22** | **0/15** |
 
-It is tuned to avoid false alarms, and it misses some new scam wordings (see `eval/RESULTS.md`). Treat it as a strong first layer and an explainer, not a guarantee. In ScamShield it's combined with official-source checks and an AI assistant's own judgment.
+On **real SMS** from a published research dataset (Mishra & Soni 2022, doi:10.17632/f45bkkt8pr.1, CC BY 4.0), which was never used for tuning, it flags **27% of 638 smishing messages** with **1.7% false alarms** on 4,844 genuine messages. The rules are precise but written for modern US-style scams, so they miss many older and non-US styles.
+
+It is tuned to avoid false alarms, and it misses scam wordings it wasn't written for (see `eval/RESULTS.md`). Treat it as a precise first layer and an explainer, not a guarantee. In [ScamShield](https://github.com/eniolagalileo-expert/scamshield-alexa), pairing it with an AI assistant's own judgment (via MCP sampling) raised real-world smishing detection on a 60-message sample from 7/30 to 29/30.
 
 ## Development
 ```bash
