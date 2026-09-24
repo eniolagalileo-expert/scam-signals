@@ -1,7 +1,7 @@
 // check_message: a fast, explainable scam analysis that needs no AI model.
 // Each signal is a known scam tactic; the answer is phrased to be spoken aloud by a voice assistant.
 
-import { analyzePhone, analyzeUrl, brandName, extractClues } from "./clues.js";
+import { analyzePhone, analyzeUrl, brandName, extractClues, normalizeSpokenLinks } from "./clues.js";
 import { reportLinks } from "./report.js";
 import { detectLanguage, localizedSpeech } from "./i18n.js";
 
@@ -126,8 +126,9 @@ function joinReasons(reasons) {
   return `${reasons.slice(0, -1).join(", ")}, and ${reasons[reasons.length - 1]}`;
 }
 
-export function scanMessage(text, { country } = {}) {
-  const message = String(text || "").slice(0, 4000);
+export function scanMessage(text, { country, speak } = {}) {
+  // Spoken links ("dot com") become real addresses so they can be checked like written ones.
+  const message = normalizeSpokenLinks(String(text || "").slice(0, 4000));
   const clues = extractClues(message);
   const flags = [];
   let score = 0;
@@ -192,9 +193,10 @@ export function scanMessage(text, { country } = {}) {
     likely_safe: "Still, never share passwords or one-time codes with anyone.",
   }[verdict];
   const englishSpeech = [opening, reasons.length ? `${titleCase(joinReasons(reasons))}.` : "", action].filter(Boolean).join(" ");
-  // Answer in the language the message was written in, when we support it.
+  // Answer in the language the message was written in, when we support it, or in `speak`
+  // when the listener's language is known (a Spanish-speaking Alexa user reading an English text).
   const language = detectLanguage(message);
-  const speech = localizedSpeech(language, { verdict, reasonIds: ranked.slice(0, 2).map((f) => f.id), hasHardFlag }) || englishSpeech;
+  const speech = localizedSpeech(speak || language, { verdict, reasonIds: ranked.slice(0, 2).map((f) => f.id), hasHardFlag }) || englishSpeech;
 
   const whatToDo = verdict === "likely_safe"
     ? ["If you're unsure, contact the sender using details you already have, not ones in the message.", "Never share passwords or one-time codes."]

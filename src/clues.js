@@ -49,6 +49,44 @@ function matches(text, re) {
   return uniq((text.match(re) || []).map((m) => m.toLowerCase())).slice(0, 8);
 }
 
+// People reading a text aloud say "usps dot com dash track dot top slash pkg" (or, in Spanish,
+// "usps punto com guion track punto top barra pkg"). Turn spoken web addresses back into real ones
+// so they can be checked. Only rewrites spans that end in a known web ending ("dot com", "dot top",
+// ...), so ordinary sentences are left alone.
+const SPOKEN_TLDS = "com|net|org|info|co|io|us|uk|gov|edu|top|xyz|click|live|shop|icu|buzz|cfd|sbs|rest|cyou|online|site|support|vip|app|link|me|ly|in|ca|au";
+// Spanish leaves out endings that are also everyday words ("en punto me llamó" is not a link).
+const SPOKEN_TLDS_ES = "com|net|org|info|io|gov|edu|top|xyz|click|live|shop|icu|buzz|cfd|sbs|rest|cyou|online|site|support|vip|app|link|mx";
+
+function spokenUrl({ dot, dash, slash, colon, tlds }) {
+  const name = `[a-z0-9]+(?:\\s+(?:${dash}|${dot})\\s+[a-z0-9]+)*`;
+  return new RegExp(
+    `\\b(?:(?:h\\s*t\\s*t\\s*p\\s*s?|https?)\\s*(?:${colon}|:)\\s*(?:(?:${slash})\\s*(?:${slash})|//)\\s*)?` + // optional "https colon slash slash"
+    `(?:w\\s*w\\s*w\\s+(?:${dot})\\s+)?` +                                                            // optional "w w w dot"
+    name +                                                                                              // name parts
+    `\\s+(?:${dot})\\s+(?:${tlds})\\b` +                                                               // "dot com"
+    `(?:\\s+(?:${slash})\\s+${name})*`,                                                                  // "/path"
+    "gi"
+  );
+}
+
+const SPOKEN = [
+  { dot: "dot", dash: "dash|hyphen", slash: "slash", colon: "colon", tlds: SPOKEN_TLDS },
+  { dot: "punto", dash: "gui[oó]n|menos", slash: "barra|diagonal", colon: "dos puntos", tlds: SPOKEN_TLDS_ES },
+].map((words) => ({ ...words, re: spokenUrl(words) }));
+
+export function normalizeSpokenLinks(text) {
+  let out = String(text || "");
+  for (const { re, dot, dash, slash, colon } of SPOKEN) {
+    out = out.replace(re, (m) => m
+      .replace(new RegExp(`\\bh\\s*t\\s*t\\s*p\\s*(s?)\\s*(?:${colon}|:)\\s*(?:(?:${slash})\\s*(?:${slash})|//)\\s*`, "i"), "http$1://")
+      .replace(new RegExp(`\\bw\\s*w\\s*w\\s+(?:${dot})\\s+`, "i"), "www.")
+      .replace(new RegExp(`\\s+(?:${dash})\\s+`, "gi"), "-")
+      .replace(new RegExp(`\\s+(?:${dot})\\s+`, "gi"), ".")
+      .replace(new RegExp(`\\s+(?:${slash})\\s+`, "gi"), "/"));
+  }
+  return out;
+}
+
 export function extractClues(text) {
   const withScheme = (text.match(/\b((?:https?:\/\/|www\.)[^\s<>"')]+|(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s<>"')]*)/gi) || [])
     .map((u) => u.replace(/[.,;:!?]+$/, ""));
