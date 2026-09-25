@@ -1,6 +1,6 @@
 {
   "name": "scam-signals",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Explainable, dependency-free scam detection for text messages, links and phone numbers, with spoken-friendly summaries.",
   "type": "module",
   "exports": "./src/index.js",

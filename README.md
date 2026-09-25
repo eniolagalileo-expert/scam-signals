@@ -23,7 +23,7 @@ It's the detection engine behind [ScamShield for Alexa+](https://github.com/enio
 - **Voice-ready:** `speech` is one or two plain sentences, with the strongest reasons first, meant for older adults and screen readers.
 - **Safe:** it never opens, fetches or clicks links. Links are analyzed as text.
 - **Tiny:** no dependencies, works offline, instant.
-- **Multilingual:** detection keywords in English, Spanish, Hindi and Indonesian; spoken answers in Spanish (full), Hindi and Indonesian (verdict + action).
+- **Multilingual:** detection keywords in English, Spanish (including code and password requests like "envíe el código"), Hindi and Indonesian; spoken answers in Spanish (full), Hindi and Indonesian (verdict + action).
 - **Understands links read aloud:** "usps dot com dash track dot top slash pkg" (or "punto com guion ... barra") is rebuilt into `usps.com-track.top/pkg` and checked, for voice assistants and call transcripts.
 
 ## What it detects
@@ -74,8 +74,10 @@ The exit code is `1` for a scam and `0` otherwise, handy in scripts and mail fil
 
 | Set | Accuracy | Scams caught | False alarms |
 |---|---|---|---|
-| Dev sets A, B, C (100 msgs, used while designing the rules) | 100% | 66/66 | 0/34 |
-| **Held-out test v2 (37 msgs, written after all tuning, never tuned on)** | **86%** | **17/22** | **0/15** |
+| Dev sets A, B, C (104 msgs, used while designing the rules) | 100% | 68/68 | 0/36 |
+| **Held-out test v2 (37 msgs, written after the rules), first run** | **86%** | **17/22** | **0/15** |
+
+A later fix for fake-order texts ("if this was not you, call …", added to dev set C) also catches one of the published test-v2 misses, so the current run shows 89% (18/22). We still quote 86% as the held-out result.
 
 On **real SMS** from a published research dataset (Mishra & Soni 2022, doi:10.17632/f45bkkt8pr.1, CC BY 4.0), which was never used for tuning, it flags **27% of 638 smishing messages** with **1.7% false alarms** on 4,844 genuine messages. The rules are precise but written for modern US-style scams, so they miss many older and non-US styles.
 
